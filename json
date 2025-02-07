@@ -1,0 +1,185 @@
+Prg 07: Create two files of XML and JSON type with values for City_Name, Latitude, Longitude,
+Temperature, and Humidity. Develop an application to create an activity with two buttons to parse
+the XML and JSON files which when clicked should display the data in their respective layouts side
+by side.
+MainActivity.java
+package com.example.jsonxmlparsing;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+public class MainActivity extends AppCompatActivity {
+Button parseXmlBtn, parseJsonBtn;
+TextView displayTextView;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_main);
+parseJsonBtn = findViewById(R.id.parseJsonBtn);
+parseXmlBtn = findViewById(R.id.parseXmlBtn);
+displayTextView = findViewById(R.id.displayTextView);
+// Parsing XML
+parseXmlBtn.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+try {
+
+InputStream is = getAssets().open("city.xml");
+DocumentBuilderFactory documentBuilderFactory =
+DocumentBuilderFactory.newInstance();
+DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+Document document = documentBuilder.parse(is);
+StringBuilder stringBuilder = new StringBuilder();
+stringBuilder.append("XML Data");
+stringBuilder.append("\n----------");
+NodeList nodeList = document.getElementsByTagName("place");
+for (int i = 0; i < nodeList.getLength(); i++) {
+Node node = nodeList.item(i);
+if (node.getNodeType() == Node.ELEMENT_NODE) {
+Element element = (Element) node;
+stringBuilder.append("\nName: ").append(getValue("name", element));
+stringBuilder.append("\nLatitude: ").append(getValue("lat", element));
+stringBuilder.append("\nLongitude: ").append(getValue("long", element));
+stringBuilder.append("\nTemperature: ").append(getValue("temperature", element));
+stringBuilder.append("\nHumidity: ").append(getValue("humidity", element));
+stringBuilder.append("\n----------");
+}
+}
+displayTextView.setText(stringBuilder.toString());
+} catch (Exception e) {
+e.printStackTrace();
+Toast.makeText(MainActivity.this, "Error Parsing XML", Toast.LENGTH_SHORT).show();
+}
+}
+});
+// Parsing JSON
+parseJsonBtn.setOnClickListener(new View.OnClickListener() {
+@Override
+public void onClick(View v) {
+String json;
+StringBuilder stringBuilder = new StringBuilder();
+try {
+InputStream is = getAssets().open("city.json");
+int size = is.available();
+byte[] buffer = new byte[size];
+is.read(buffer);
+json = new String(buffer, StandardCharsets.UTF_8);
+JSONArray jsonArray = new JSONArray(json);
+stringBuilder.append("JSON Data");
+stringBuilder.append("\n----------");
+
+for (int i = 0; i < jsonArray.length(); i++) {
+JSONObject jsonObject = jsonArray.getJSONObject(i);
+stringBuilder.append("\nName: ").append(jsonObject.getString("name"));
+stringBuilder.append("\nLatitude: ").append(jsonObject.getString("lat"));
+stringBuilder.append("\nLongitude: ").append(jsonObject.getString("long"));
+stringBuilder.append("\nTemperature: ").append(jsonObject.getString("temperature"));
+stringBuilder.append("\nHumidity: ").append(jsonObject.getString("humidity"));
+stringBuilder.append("\n----------");
+}
+displayTextView.setText(stringBuilder.toString());
+is.close();
+} catch (IOException | JSONException e) {
+e.printStackTrace();
+Toast.makeText(MainActivity.this, "Error Parsing JSON Data",
+Toast.LENGTH_SHORT).show();
+}
+}
+});
+}
+// Helper method to extract XML element value
+private String getValue(String tag, Element element) {
+return element.getElementsByTagName(tag).item(0).getTextContent();
+}
+}
+activitymain.xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context=".MainActivity"
+android:padding="16dp">
+<TextView
+android:id="@+id/titleTextView"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="PARSING XML AND JSON DATA"
+android:textSize="18sp"
+android:textStyle="bold"
+android:textColor="#000"
+android:layout_marginBottom="20dp"
+
+app:layout_constraintTop_toTopOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent" />
+<Button
+android:id="@+id/parseXmlBtn"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Parse XML Data"
+android:layout_marginBottom="20dp"
+android:backgroundTint="@android:color/holo_blue_light"
+app:layout_constraintTop_toBottomOf="@id/titleTextView"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent" />
+<Button
+android:id="@+id/parseJsonBtn"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Parse JSON Data"
+android:backgroundTint="@android:color/holo_green_light"
+app:layout_constraintTop_toBottomOf="@id/parseXmlBtn"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent" />
+<TextView
+android:id="@+id/displayTextView"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=""
+android:layout_marginTop="20dp"
+app:layout_constraintTop_toBottomOf="@id/parseJsonBtn"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent"
+android:textColor="#000"
+android:textSize="16sp" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+City.xml
+<?xml version="1.0" encoding="utf-8"?>
+<places>
+<place>
+<name>Mysore</name>
+<lat>12.295</lat>
+<long>76.639</long>
+<temperature>22</temperature>
+
+<humidity>90%</humidity>
+</place>
+</places>
+City.json
+[
+{
+"name": "Mysore",
+"lat": "12.295",
+"long": "76.639",
+"temperature": "22",
+"humidity": "90%"
+}
+]
